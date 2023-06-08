@@ -1,0 +1,15 @@
+%nprocshared=8
+%mem=16GB
+%chk=h.chk
+# opt hf/3-21g geom=connectivity output=wfn
+
+Title Card Required
+
+0 2
+ H                  0.00000000    0.00000000    0.00000000
+
+ 1
+
+h.wfn
+
+
