@@ -1,15 +1,19 @@
-import sympy as sp   # Para las expresiones de las primitivas
+import sympy as sp   # For primitive expression
 #import itertools as it  #Para realizar iteracciones de manera sencilla
-from sympy.abc import x,y,z  # Define los elementos x,y,z como variables de sympy
+from sympy.abc import x,y,z
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  #Para realizar la superficies
+from mpl_toolkits.mplot3d import Axes3D  #Surface Plots
 from matplotlib import cm
 
 
 
-class PG:   #Esta clase es para definir a cada funcion primitiva
-	def __init__(self,centre,type,exp): #para iniciar se necesita el #centro,tipo de gaussiana y exponente
+class PG:
+        """Class to definie primitive functions to be used in the construction of the density"""
+	def __init__(self,centre,type,exp):
+                """Centre: string, the # of centre within the .wfn file (# nuclei)
+                   type: str, the type of function to be used
+                   exp: float, the exponential of the gaussian part"""
 		self.centre=float(centre)
 		self.type=type
 		self.exp=exp
@@ -39,7 +43,8 @@ class PG:   #Esta clase es para definir a cada funcion primitiva
 		self.F=self.td*self.ae*sp.exp(-self.exp*((x+self.cx)**2+(y+self.cy)**2+(z+self.cz)**2)) # EScribe la funcion exponencial
 		self.G=self.F*self.A  #Escribre la primitiva total
 	
-	def primeG(self): #por Definir
+	def primeG(self):
+                """In construction, this function is intented to copy PrimeG function of Baders original code"""
 		self.dev_x=sp.diff(self.G,"x")
 		self.dev_y=sp.diff(self.G,"y")
 		self.dev_z=sp.diff(self.G,"z")
@@ -59,25 +64,28 @@ class PG:   #Esta clase es para definir a cada funcion primitiva
 		#self.dG3=[self.DGG[0][2],self.DGG[3][2],self.DGG[5][2],self.DGG[6][2],self.DGG[8][2],self.DGG[9][2],self.DGG[10][2],self.DGG[12][2],self.DGG[13][2],self.DGG[14][2]]
 		#self.dG2=[self.DGG[0][1],self.DGG[6][1],self.DGG[9][1],self.DGG[10][1],self.DGG[13][1],self.DGG[14][1]]
 		#self.dG1=[self.DGG[0][0],self.DGG[10][0],self.DGG[14][0]]
-class Mol: #Clase para sacar los orbitales Moleculares
-        def __init__(self,path): #Se inicializa unicamente con la direccion del archivo
+class Mol:
+        """Class to define the density of molecule"""
+        def __init__(self,path):
+                """path:  str, path to find the .wfn file"""
                 self.path=path
 
-        def rdwfn(self):  #Metodo para leer el archivo wfn
+        def rdwfn(self): 
+                """Method of read the contents of the .wfn file"""
                 print("Reading File")
-                myfile=open(self.path,"r") # abre el wfn
-                lines=myfile.readlines() # obtine la informacion del wfn
-                self.nom=lines[0][:-1] # Toma el numbre especificado en el wfn
+                myfile=open(self.path,"r") 
+                lines=myfile.readlines() 
+                self.nom=lines[0][:-1] # Takes the filename of the .wfn file
                 temp=lines[1].split()
-                self.btype=temp[0] #Obtiene el tipo de funciones primitivas
-                self.num_mol_orn=float(temp[1]) # obtiene el numero total de orbitales moleculares
-                self.num_prim=float(temp[4]) # obtiene el numero de primitivas
-                self.num_nucl=float(temp[6]) #obtiene el numero de nucleos/cent
-                self.CI=[]  # variable que se utilizara para la informacion de los nucleos
-                self.M=[]	# variable que se utilizara para los orbitales moleculares construidos
-                self.MC=[]	#varaible que se utilizara para los coeficientes de la primitivas
+                self.btype=temp[0] #Type of primitive functions
+                self.num_mol_orn=float(temp[1]) # Total number of molecular orbitals
+                self.num_prim=float(temp[4]) # Number number of primitive gaussian functions
+                self.num_nucl=float(temp[6]) # Number of nuclei in the file
+                self.CI=[]  # Coordinate Information (xyz)
+                self.M=[]	# Molecular orbitals
+                self.MC=[]	# Coefficient of the primitive functions
                 centre=[]
-                type=[]
+                type=[] 
                 exp=[]
                 for i in range(2,2+int(self.num_nucl)): # de la linea dos hasta el numero de nucleos
                         temp_2=lines[i].split()
@@ -113,6 +121,7 @@ class Mol: #Clase para sacar los orbitales Moleculares
                 print("End of file")
 
         def gaus4(self):
+                """Method to reconstruct density from gaussian primitives"""
                 self.rho=[]
                 for i in range(0,len(self.GF)):
                         self.GF[i].cons_exp(self.CI)
@@ -125,14 +134,24 @@ class Mol: #Clase para sacar los orbitales Moleculares
                                 self.MC[i][j]=float(self.MC[i][j])
                                 psi=psi+self.MC[i][j]*self.GF[j].G
                         self.rho.append([psi*psi])
-                        print("Done MO"+" "+str(i+1)+" "+"of"+" "+str(self.num_mol_orn))
+                        print("Done MO"+" "+str(i+1)+" "+"of"+" "+str(self.num_mol_orn)) # An f string would work better here"
                 print("Rho is ready")
                 self.rho_an=self.rho[0]
                 #for i in range(0,len(self.rho)):
                 #        self.rho[i]=sp.lambdify([x,y,z],self.rho[i],"numpy")
                 #print("Rho is now a function")
 
-        def graph(self,en,xyz,min,max,pun,lim_rho,cont,min_c):
+        def graph(self,en=0,xyz,min,max,pun,lim_rho,cont=0,min_c=30):
+                """Method to graph the molecular orbitals densities, both isodensities and surface
+                en: int, Number of molecular orbital, from 0 to ...
+                XYZ: str, position of the graph, posible values: "x","y","z","xy","xz","yz"
+                min: float, minimum xyz value of where to start the graph
+                max: float, maximun xyz value of where to end the graph
+                pun: float, number of points to evaluate in self.rho[en]
+                lim_rho: float, limit value of rho allowed
+                cont: int, isodensities or surface; 1 isodensities, anyother number surfaces
+                min_c: number of isodensities
+                Note: Currently only tested in xy""" 
                 rho_prub=sp.lambdify([x,y,z],self.rho[int(en)],"numpy")
                 val_x=np.linspace(float(min),float(max),int(pun))
                 val_y=np.linspace(float(min),float(max),int(pun))
