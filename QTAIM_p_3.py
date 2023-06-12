@@ -246,3 +246,9 @@ class Mol:
                 surf = ax.plot_surface(val_y, val_z, grap[0], cmap=cm.coolwarm)
         # plt.axis('off')
         plt.show()
+
+def main(path):
+        density = Mol(path)
+        density.rdwfn()
+        density.gaus4()
+        return density
