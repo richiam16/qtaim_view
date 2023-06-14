@@ -23,7 +23,8 @@ class PG:
             " "+str(self.centre)+" "+"type:"+" "+str(self.type)
         print(exout1)
         # myfile=open("/home/ricardo/Escritorio/Corr/QTAIM/typeG.txt","r") #abre archivo que contine informacion de A
-        myfile = open("/mnt/c/Users/richi/Desktop/QTAIM/typeG.txt")
+        #myfile = open("/mnt/c/Users/richi/Desktop/QTAIM/typeG.txt")
+        myfile = open("typeG.txt")
         lines = myfile.readlines()  # archiva las lineas del archivo
         x, y, z = sp.symbols("x y z")
         # cambia la D por E para exponentes
@@ -53,7 +54,7 @@ class PG:
         self.G = self.F*self.A  # Escribre la primitiva total
 
     def primeG(self):
-        """In construction, this function is intented to copy PrimeG function of Baders original code"""
+        """In construction, this function is intented to copy PrimeG function of Baders original code and get the differential form for newton-raphson"""
         self.dev_x = sp.diff(self.G, "x")
         self.dev_y = sp.diff(self.G, "y")
         self.dev_z = sp.diff(self.G, "z")
